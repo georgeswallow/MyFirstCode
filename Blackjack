@@ -1,0 +1,118 @@
+import random
+import numpy as np
+import pandas as pd
+ 
+# restart game loop
+restart = 1
+ 
+# score counter
+playergamescore = 0
+cpugamescore = 0
+ 
+# function for displaying each players cards
+def show_cards(user1,user2):
+    print('Player cards: {}'.format(user1))
+    print('CPU cards: {}'.format(user2))
+ 
+def score(playerScore, cpuScore):
+    global playergamescore, cpugamescore
+    playergamescore += playerScore
+    cpugamescore += cpuScore
+    printscore()
+   
+def printscore():
+    global playergamescore, cpugamescore
+    usertable = ['Player |', 'CPU    |']
+    scoretable = ['Score']
+    Data = np.array([[playergamescore], [cpugamescore]])
+    print(pd.DataFrame(Data, usertable, scoretable))
+ 
+# first part of restart loop
+while restart == 1:
+ 
+# establish shuffled deck
+    cards = ['2','3','4','5','6','7','8','9','10','J','Q','K','A']
+    deck = cards*4
+    random.shuffle(deck)
+ 
+# assign the cards values
+    value = {'2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9, '10':10, 'J':10, 'Q':10, 'K':10, 'A':11}
+ 
+# deal first set of cards
+    playerhand = [deck.pop() for _ in range(2)]
+    cpuhand = [deck.pop() for _ in range(2)]
+    print('Player cards: {}'.format(playerhand))
+ 
+    playerscore = sum(map(value.get, playerhand))
+    cpuscore = sum(map(value.get, cpuhand))
+    print('Player score: {}'.format(playerscore))
+    print('CPU cards: {}, X \n'.format(cpuhand[0]))
+ 
+# stick or twist loop
+   gamelive = 1
+    while gamelive == 1:
+        playerdecision = input('Stick (s) or twist (t)?')
+        print('\n')
+        if playerdecision == 't':
+            playerhand.append(deck.pop())
+            print('Player cards: {}'.format(playerhand))
+            playerscore = sum(map(value.get, playerhand))
+            print('Player score: {}'.format(playerscore))
+            print('CPU cards: {}, X \n'.format(cpuhand[0]))
+            if playerscore > 21:
+                print('CPU cards: {}'.format(cpuhand))
+                print('Player bust, CPU wins! \n')
+                score(0, 1)
+                gamelive = 2
+            else:
+                if len(playerhand) > 4:
+                    show_cards(playerhand, cpuhand)
+                    print('Player wins with 5 card trick! \n')
+                    score(1, 0)
+                    gamelive = 2
+                else:
+                    gamelive = 1
+        elif playerdecision == 's':
+            if playerscore < cpuscore:
+                show_cards(playerhand, cpuhand)
+                print('Player loses! \n')
+                score(0, 1)
+                gamelive = 2
+            elif playerscore == cpuscore:
+                show_cards(playerhand, cpuhand)
+                print('Tied game! \n')
+                score(1, 1)
+                gamelive = 2
+            elif playerscore > cpuscore:
+                cpulive = 1
+                while cpulive == 1:
+                    cpuhand.append(deck.pop())
+                    cpuscore = sum(map(value.get, cpuhand))
+                    if cpuscore > 21:
+                        cpulive = 2
+                        gamelive = 2
+                        show_cards(playerhand, cpuhand)
+                        print('CPU bust, Player wins! \n')
+                        score(1, 0)
+                    elif cpuscore == playerscore:
+                        show_cards(playerhand, cpuhand)
+                        print('Tied game! \n')
+                        score(1, 1)
+                        cpulive = 2
+                        gamelive = 2
+                    elif cpuscore > playerscore:
+                        show_cards(playerhand, cpuhand)
+                        print('CPU wins! \n')
+                        score(0, 1)
+                        cpulive = 2
+                        gamelive = 2
+ 
+# final part of restart loop
+    answer = input('Would you like to play another hand? (y or n)')
+    print('\n')
+    if answer == 'y':
+        restart = 1
+    elif answer == 'n':
+        print('Thanks for playing, see you soon! \n')
+        printscore()
+        restart = 2
